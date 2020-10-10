@@ -1,9 +1,5 @@
 #include <bitset>
-#include <boost/algorithm/string.hpp>
 #include <byteswap.h>
-#include <cstddef>
-#include <cstdint>
-#include <cstdlib>
 #include <cstring>
 #include <experimental/filesystem>
 #include <fstream>
@@ -12,12 +8,8 @@
 #include <sys/stat.h>
 
 #include "blob.h"
-#include "commit.h"
 #include "file_io.h"
-#include "index.h"
-#include "object.h"
 #include "qrune.h"
-#include "tree.h"
 #include "zlib.h"
 
 namespace fs = std::experimental::filesystem;
@@ -92,7 +84,7 @@ std::string bin_str_to_hex(const std::string &s) {
 // }
 ;
 
-void create_commit(Tree *tree, const char *message) {
+void create_commit(const char *message) {
   char tree_sha1[41] = "decd3339b94705aefe6229c1b54150dc7f04c389";
   // char *message = argv[2];
 
@@ -183,7 +175,6 @@ void update_index(auto path, auto stat, auto sha1) {
   flags = flags | std::bitset<16>(8);
   std::string sss = flags.to_string();
   std::string te = bin_str_to_hex(sss);
-  // flags.to_string<char, std::char_traits<char>, std::allocator<char>>());
 
   write_hex(&ofs, te);
   std::string p = std::string(path);
@@ -212,11 +203,6 @@ int add(const char *path) {
   return 0;
 }
 
-int init() {
-  mkdir("./.qrune", S_IRWXU);
-  return mkdir("./.qrune/objects", S_IRWXU);
-}
-
 int commit(const char *message) {
   // create_trees();
   // create_commit(root_tree, message);
@@ -226,8 +212,6 @@ int commit(const char *message) {
 int main(int argc, char *argv[]) {
   if (!strcmp(argv[1], "add")) {
     add(argv[2]);
-  } else if (!strcmp(argv[1], "init")) {
-    return init();
   } else if (!strcmp(argv[1], "commit")) {
     return commit(argv[2]);
   } else {
