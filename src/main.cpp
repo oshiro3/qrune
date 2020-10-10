@@ -14,7 +14,7 @@
 
 namespace fs = std::experimental::filesystem;
 
-#define GIT_ROOT "/home/yosuke/works/qrune/"
+#define GIT_ROOT "~/works/qrune/"
 
 int write_line(std::string filename, std::string body) {
   std::ofstream ofs(filename, std::ios::trunc);
