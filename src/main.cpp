@@ -1,5 +1,6 @@
 #include <bitset>
 #include <boost/algorithm/string.hpp>
+#include <byteswap.h>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -119,7 +120,6 @@ void create_commit(Tree *tree, const char *message) {
 }
 
 // void update_index2(auto path, auto stat, auto sha1) {}
-#include <byteswap.h>
 void update_index(auto path, auto stat, auto sha1) {
 
   char *indexfile = ".git/index2";
@@ -207,25 +207,7 @@ int add(const char *path) {
   unsigned char sha1[41];
   struct stat st;
   lstat(path, &st);
-  unsigned char *buf;
-  void *b = operator new(st.st_size);
-  buf = (unsigned char *)b;
-  std::ifstream ifs(path);
-  std::string buff;
-  std::string buffer;
-  while (std::getline(ifs, buff)) {
-    buffer += buff + "\n";
-  };
-  buf = (unsigned char *)strdup(buffer.c_str());
-
-  calc_object_sha1("blob", buf, st.st_size, sha1);
-  char hdr[1024];
-  char *obj_type = "blob";
-  sprintf(hdr, "%s %ld", obj_type, (long)st.st_size);
-
-  int hdrlen = strlen(hdr) + 1;
-  git_write_loose_object(sha1, hdr, hdrlen, buf, st.st_size, 0);
-  std::cout << sizeof(sha1) << std::endl;
+  Blob::create(path, &st, sha1);
   update_index(path, st, sha1);
   return 0;
 }

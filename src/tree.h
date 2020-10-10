@@ -5,6 +5,8 @@
 #include "blob.h"
 #include "object.h"
 
+#define GIT_ROOT "/home/yosuke/works/qrune/"
+
 typedef struct {
   std::string type;
   std::string name;
