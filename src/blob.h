@@ -15,7 +15,8 @@ class Blob {
 
 public:
   Blob(auto o_id) { object_id = o_id; }
-  static void create(const char *path, struct stat *st, unsigned char *sha1) {
+  static void create(const char *path, struct stat64 *st, unsigned char *sha1) {
+    std::cout << "sha size in blob: " << sizeof(sha1) << std::endl;
     unsigned char *buf;
     void *b = operator new(st->st_size);
     buf = (unsigned char *)b;

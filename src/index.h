@@ -1,95 +1,97 @@
 #ifndef INDEX_H
 #define INDEX_H
 
-// #include <boost/foreach.hpp>
-// #include <boost/optional.hpp>
-// #include <boost/property_tree/json_parser.hpp>
-// #include <boost/property_tree/ptree.hpp>
-//
-// #include <chrono>
-// #include <cstdlib>
-// #include <ctime>
-// #include <experimental/filesystem>
-// #include <fstream>
-// #include <iomanip>
-// #include <iostream>
-// #include <string>
-// #include <vector>
-//
-// using namespace boost::property_tree;
-//
-// namespace fs = std::experimental::filesystem;
-//
-// class Entry {
-// public:
-//   std::string o_id;
-//   std::string absolute_path;
-//   std::string name;
-//   int mode;
-//
-//   Entry(){};
-//   Entry(const char *o_id, auto name, auto mode, auto path) {
-//     this->o_id = o_id;
-//     this->name = name;
-//     this->absolute_path = path;
-//     this->mode = static_cast<int>(mode);
-//   };
-//   std::string format() {
-//     std::stringstream buf;
-//     buf << std::oct << this->mode;
-//     buf << " ";
-//     buf << this->o_id;
-//     buf << " ";
-//     buf << this->name;
-//     return buf.str();
-//   };
-// };
-//
-// // index は各blobについてmode/hash/status/相対パス の情報を持つ
-// // status: 0->異常なし
-// // index は Tree の情報を知る必要はない
-// class Index {
-// public:
-//   std::vector<Entry> entries;
-//
-//   void update(Blob *blob) {
-//     Entry *entry = new Entry(blob->o_id.c_str(), blob->name, blob->mode,
-//                              blob->absolute_path);
-//     entries.push_back(*entry);
-//     ptree pt;
-//     ptree child;
-//     for (auto &e : entries) {
-//       std::stringstream ss;
-//       ss << std::oct << static_cast<int>(e.mode) << std::endl;
-//       {
-//         ptree entry;
-//         entry.put("mode", ss.str());
-//         entry.put("name", e.name);
-//         entry.put("path", e.absolute_path);
-//         entry.put("o_id", e.o_id);
-//         child.push_back(std::make_pair("", entry));
-//       }
-//     };
-//     pt.add_child("entries", child);
-//     write_json(".git/index", pt);
-//   };
-//
-//   static Index *get_current_index() {
-//     Index *i = new Index;
-//     ptree pt;
-//     read_json(".git/index", pt);
-//     BOOST_FOREACH (const ptree::value_type &child, pt.get_child("entries")) {
-//       const ptree &info = child.second;
-//       Entry e;
-//       e.o_id = info.get_optional<std::string>("o_id").get();
-//       e.mode = info.get_optional<int>("mode").get();
-//       e.name = info.get_optional<std::string>("name").get();
-//       e.absolute_path = info.get_optional<std::string>("path").get();
-//       i->entries.push_back(e);
-//     }
-//     return i;
-//     ;
-//   };
-// };
-//
+#include <cstdlib>
+#include <fstream>
+#include <string>
+
+#define INDEX_FILE_PATH ".git/index2"
+
+class Entry {
+public:
+};
+
+class Index {
+public:
+  static void update(const char *path, struct stat64 *stat,
+                     unsigned char *blob_id) {
+    char *indexfile = INDEX_FILE_PATH;
+    char header[5] = "DIRC";
+    std::ofstream ofs(indexfile, std::ios::out | std::ios::binary);
+    for (int i = 0; i < strlen(header); i++) {
+      ofs.write(reinterpret_cast<char *>(&header[i]), sizeof(header[i]));
+    }
+
+    int ver = 2;
+    auto ui = bswap_32(ver);
+    ofs.write(reinterpret_cast<char *>(&ui), sizeof(4));
+    auto entry_size = bswap_32(1);
+    ofs.write(reinterpret_cast<char *>(&entry_size), sizeof(4));
+
+    /* Entry */
+    int ctime = bswap_32(stat->st_ctime);
+    int mtime = bswap_32(stat->st_mtime);
+    int ctime_nano = bswap_32(stat->st_ctim.tv_nsec);
+    int mtime_nano = bswap_32(stat->st_mtim.tv_nsec);
+
+    int dev = bswap_32(stat->st_dev);
+    int ino = bswap_32(stat->st_ino);
+    int mode = bswap_32(stat->st_mode);
+    int uid = bswap_32(stat->st_uid);
+    int gid = bswap_32(stat->st_gid);
+    int size = bswap_32(stat->st_size);
+    short zero = 0;
+
+    ofs.write(reinterpret_cast<char *>(&ctime), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&ctime_nano), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&mtime), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&mtime_nano), sizeof(4));
+
+    ofs.write(reinterpret_cast<char *>(&dev), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&ino), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&mode), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&uid), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&gid), sizeof(4));
+    ofs.write(reinterpret_cast<char *>(&size), sizeof(4));
+
+    for (int i = 0; i < 20; i++) {
+      ofs.write(reinterpret_cast<char *>(&blob_id[i]), 1);
+    }
+
+    // assume-valid flag, extended flag, stage を0にする
+    //
+    // std::bitset<16> flags = 0;
+    // flags = flags <<= 15;
+    // flags = flags | std::bitset<16>(8);
+    // std::string sss = flags.to_string();
+    // std::string te = bin_str_to_hex(sss);
+    // write_hex(&ofs, te);
+    short filename_length = bswap_16(strlen(path));
+    ofs.write(reinterpret_cast<char *>(&filename_length), 2);
+
+    char p[strlen(path) + 1];
+    strcpy(p, path);
+    for (int i = 0; i < strlen(path); i++) {
+      ofs.write(reinterpret_cast<char *>(&p[i]), 1);
+    }
+    ofs.write(reinterpret_cast<char *>(&zero), 2);
+    ofs.close();
+
+    struct stat s;
+    lstat(indexfile, &s);
+    unsigned char buf[s.st_size];
+    unsigned char index_sha1[41];
+    FILE *ptr;
+    ptr = fopen(indexfile, "rb");
+    fread(buf, sizeof(buf), 1, ptr);
+
+    calc_sha1(&buf, sizeof(buf), index_sha1);
+    auto index_sha1_hex = sha1_to_hex(index_sha1);
+    std::cout << "index hex: " << index_sha1_hex << std::endl;
+    ofs.open(indexfile, std::ios::out | std::ios::binary | std::ios::app);
+    for (int i = 0; i < 20; i++) {
+      ofs.write(reinterpret_cast<char *>(&index_sha1[i]), 1);
+    }
+  }
+};
 #endif

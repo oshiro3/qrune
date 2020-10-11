@@ -27,6 +27,7 @@ int write_line(auto filename, auto body) {
 
 void write_hex(std::ofstream *ofs, std::string hex) {
   std::basic_string<uint8_t> bytes;
+  std::cout << "hex to Index: " << hex << std::endl;
 
   for (size_t i = 0; i < hex.length(); i += 2) {
     uint8_t byte;

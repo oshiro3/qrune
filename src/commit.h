@@ -9,40 +9,26 @@
 
 class Commit {
 public:
-  //   // Parent member
-  //   std::string o_id;
-  //   const char *type;
-  //   std::string tree_id;
-  //   std::string commiter;
-  //   std::string author;
-  //   std::string message;
-  //   time_t created_at;
-  //
-  //   Commit(auto tree_id, auto message, auto author) {
-  //     this->type = "COMMIT";
-  //     this->tree_id = tree_id;
-  //     this->commiter = author;
-  //     this->author = author;
-  //     this->message = message;
-  //     time(&this->created_at);
-  //   };
-  //
-  //   static Commit *create(auto tree_id, auto message, auto author) {
-  //     auto commit = new Commit(tree_id, message, author);
-  //     // commit->o_id = calc_sha1("blob", );
-  //     auto d = ".git/objects/" + commit->o_id.substr(0, 2);
-  //     mkdir(d.c_str(), S_IRWXU);
-  //     write_line(commit->o_id.substr(2, 38), commit->format());
-  //     return commit;
-  //   };
-  //
-  //   std::string format() {
-  //     return (boost::format("tree %1%\nauthor %2% %3%\ncommiter %4%
-  //     %5%\n\n%6%") %
-  //             this->tree_id % this->author % this->created_at %
-  //             this->commiter % this->created_at % this->message)
-  //         .str();
-  //   };
+  static void create(const char *message, auto root_tree_id) {
+    unsigned char new_sha1[21];
+    char parent[41] = "";
+    char buf[4096];
+    char *author = "OSHIRO <oshiro3@example.com> 1601799532 +0900";
+    char *commiter = "OSHIRO <oshiro3@example.com> 1601799532 +0900";
+    _rev_parse("HEAD", parent);
+    sprintf(buf, "tree %s\nparent %s\nauthor %s\ncommiter %s\n\n%s\n",
+            root_tree_id, parent, author, commiter, message);
+    size_t obj_size = strlen(buf) + 1;
+    calc_object_sha1("commit", buf, obj_size, new_sha1);
+    char hdr[1024];
+    char *obj_type = "commit";
+    sprintf(hdr, "%s %ld", obj_type, (long)obj_size);
+
+    int hdrlen = strlen(hdr) + 1;
+    git_write_loose_object(new_sha1, hdr, hdrlen, buf, obj_size, 0);
+    write_line(".git/refs/heads/master", sha1_to_hex(new_sha1));
+    printf("[master %s] %s\n", sha1_to_hex(new_sha1), message);
+  }
 };
 
 #endif
