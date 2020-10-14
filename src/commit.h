@@ -1,10 +1,11 @@
 #ifndef COMMIT_H
 #define COMMIT_H
 
+#include <ctime>
 #include <string>
-#include <time.h>
 
 #include "file_io.h"
+#include "qrune.h"
 #include "sha.h"
 
 class Commit {
@@ -13,8 +14,11 @@ public:
     unsigned char new_sha1[21];
     char parent[41] = "";
     char buf[4096];
-    char *author = "OSHIRO <oshiro3@example.com> 1601799532 +0900";
-    char *commiter = "OSHIRO <oshiro3@example.com> 1601799532 +0900";
+    time_t current_time = time(NULL);
+    char author[128];
+    char commiter[128];
+    sprintf(author, "OSHIRO <oshiro3@example.com> %ld +0900", current_time);
+    sprintf(commiter, "OSHIRO <oshiro3@example.com> %ld +0900", current_time);
     _rev_parse("HEAD", parent);
     sprintf(buf, "tree %s\nparent %s\nauthor %s\ncommiter %s\n\n%s\n",
             root_tree_id, parent, author, commiter, message);
@@ -27,7 +31,8 @@ public:
     int hdrlen = strlen(hdr) + 1;
     git_write_loose_object(new_sha1, hdr, hdrlen, buf, obj_size, 0);
     write_line(".git/refs/heads/master", sha1_to_hex(new_sha1));
-    printf("[master %s] %s\n", sha1_to_hex(new_sha1), message);
+    std::cout << "[master " << sha1_to_hex(new_sha1) << "] " << message
+              << std::endl;
   }
 };
 

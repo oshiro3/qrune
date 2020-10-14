@@ -4,15 +4,32 @@
 #include <cstdlib>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #define INDEX_FILE_PATH ".git/index2"
 
 class Entry {
 public:
+  int ctime;
+  int ctime_nano;
+  int mtime;
+  int mtime_nano;
+  int dev;
+  int ino;
+  int mode;
+  int uid;
+  int gid;
+  int filesize;
+  char *object_id;
+  bool flag;
+  unsigned short filepath_length;
+  char *fiiepath;
+  short pad;
 };
 
 class Index {
 public:
+  // vector<Entry> entries;
   static void update(const char *path, struct stat64 *stat,
                      unsigned char *blob_id) {
     char *indexfile = INDEX_FILE_PATH;

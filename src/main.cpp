@@ -7,7 +7,7 @@
 #include <string>
 #include <sys/stat.h>
 
-#include "blob.h"
+#include "blob.hpp"
 #include "commit.h"
 #include "file_io.h"
 #include "index.h"
@@ -64,7 +64,7 @@ std::string bin_str_to_hex(const std::string &s) {
 // }
 
 void create_commit(const char *message) {
-  char tree_sha1[41] = "decd3339b94705aefe6229c1b54150dc7f04c389";
+  unsigned char tree_sha1[41] = "decd3339b94705aefe6229c1b54150dc7f04c389";
   Commit::create(message, tree_sha1);
 }
 
@@ -79,7 +79,7 @@ int add(const char *path) {
 
 int commit(const char *message) {
   // create_trees();
-  // create_commit(root_tree, message);
+  create_commit(message);
   return 0;
 }
 
