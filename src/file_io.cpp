@@ -2,8 +2,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "file_io.h"
-#include "sha.h"
+#include "file_io.hpp"
+#include "sha.hpp"
 
 std::string to_filename(const unsigned char *sha1) {
   const char *objdir = ".git/objects";
@@ -27,7 +27,6 @@ int write_line(auto filename, auto body) {
 
 void write_hex(std::ofstream *ofs, std::string hex) {
   std::basic_string<uint8_t> bytes;
-  std::cout << "hex to Index: " << hex << std::endl;
 
   for (size_t i = 0; i < hex.length(); i += 2) {
     uint8_t byte;

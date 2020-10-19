@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <string.h>
 
-#include "zlib.h"
+#include "zlib.hpp"
 
 static inline uInt zlib_buf_cap(unsigned long len) {
   return (ZLIB_BUF_MAX < len) ? ZLIB_BUF_MAX : len;

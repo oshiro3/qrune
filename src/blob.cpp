@@ -4,8 +4,8 @@
 #include <sys/stat.h>
 
 #include "blob.hpp"
-#include "qrune.h"
-#include "sha.h"
+#include "qrune.hpp"
+#include "sha.hpp"
 
 void Blob::create(const char *path, struct stat64 *st, unsigned char *sha1) {
   unsigned char *buf;

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <openssl/sha.h>
 #include <sstream>
 #include <stdlib.h>

@@ -10,6 +10,7 @@ build:
 	g++ -c src/qrune.cpp -std=c++17 -Wall -lstdc++fs
 	g++ -c src/sha.cpp -std=c++17 -Wall -lssl -lcrypto
 	@g++ -o qrune blob.o qrune.o zlib.o file_io.o sha.o main.o -std=c++17 -Wall -lssl -lcrypto -lstdc++fs -lz
+	@rm -rf *.o
 
 clean:
 	rm -rf *.o

@@ -4,9 +4,9 @@
 #include <ctime>
 #include <string>
 
-#include "file_io.h"
-#include "qrune.h"
-#include "sha.h"
+#include "file_io.hpp"
+#include "qrune.hpp"
+#include "sha.hpp"
 
 class Commit {
 public:

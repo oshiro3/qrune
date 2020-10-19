@@ -1,5 +1,6 @@
 #include <bitset>
 #include <byteswap.h>
+#include <cstdlib>
 #include <cstring>
 #include <experimental/filesystem>
 #include <fstream>
@@ -8,11 +9,12 @@
 #include <sys/stat.h>
 
 #include "blob.hpp"
-#include "commit.h"
-#include "file_io.h"
-#include "index.h"
-#include "qrune.h"
-#include "zlib.h"
+#include "commit.hpp"
+#include "file_io.hpp"
+#include "index.hpp"
+#include "qrune.hpp"
+#include "tree.hpp"
+#include "zlib.hpp"
 
 namespace fs = std::experimental::filesystem;
 
@@ -47,25 +49,14 @@ std::string bin_str_to_hex(const std::string &s) {
   return out;
 }
 
-// Tree *create_trees() {
-// auto i = Index::get_current_index();
-// // TODO: commit 時の tree の実装中
-// // tree 作成に必要な情報は entry に格納して渡す
-// Tree *root_tree;
-// for (auto &blob : i->entries) {
-//   // blob のパスをパースしてディレクトリに分解してからtree作成に移る->
-//   staging
-//       // を実装して上記処理をstagingを利用して実装
-//       auto tree = tree_update_b(blob, blob.absolute_path);
-//   fs::path p = fs::path(blob.absolute_path);
-//   root_tree = tree_update(tree, p.remove_filename().remove_filename());
-// }
-// return root_tree;
-// }
+#define INDEX_FILE_PATH ".git/index"
+char *create_trees(Index *index) {
+  Tree *t = Tree::Create(index->entries);
+  return t->object_id;
+}
 
-void create_commit(const char *message) {
-  unsigned char tree_sha1[41] = "decd3339b94705aefe6229c1b54150dc7f04c389";
-  Commit::create(message, tree_sha1);
+void create_commit(char *tree_id, const char *message) {
+  Commit::create(message, tree_id);
 }
 
 int add(const char *path) {
@@ -78,8 +69,9 @@ int add(const char *path) {
 }
 
 int commit(const char *message) {
-  // create_trees();
-  create_commit(message);
+  Index *i = new Index();
+  char *tree_id = create_trees(i);
+  create_commit(tree_id, message);
   return 0;
 }
 

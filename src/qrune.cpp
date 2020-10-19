@@ -3,11 +3,19 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "file_io.h"
-#include "qrune.h"
-#include "zlib.h"
+#include "file_io.hpp"
+#include "qrune.hpp"
+#include "zlib.hpp"
 
 namespace fs = std::experimental::filesystem;
+
+class Qrune {
+private:
+  const char *git_index_file;
+
+public:
+  Qrune() { this->git_index_file = ".git/index"; }
+};
 
 static int write_buff(int fd, void const *buf, unsigned long len) {
   if (write_in_full(fd, (const char *)buf, len) < 0)
